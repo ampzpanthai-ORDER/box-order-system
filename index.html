@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="th" class="h-full bg-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบบันทึกออเดอร์กล่องสินค้า - Order Management System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Sarabun', 'Plus Jakarta Sans', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    html, body {
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+    }
+    body { font-family: 'Sarabun', sans-serif; }
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 5px;
+      width: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="h-full bg-slate-100 text-slate-800 antialiased selection:bg-indigo-500 selection:text-white flex flex-col">
+
+  <!-- Top Navigation / Header Banner -->
+  <header class="bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 text-white border-b border-slate-800 shadow-md shrink-0">
+    <div class="w-full max-w-[1920px] mx-auto px-4 py-2.5">
+      <div class="flex items-center justify-between gap-3">
+        
+        <!-- Brand Title -->
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 via-blue-500 to-purple-600 flex items-center justify-center shadow-md shadow-indigo-500/30 ring-1 ring-white/20 shrink-0">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-base sm:text-lg font-black tracking-tight text-white leading-none">ระบบบันทึกออเดอร์กล่องสินค้า</h1>
+              <span class="text-[10px] font-bold bg-gradient-to-r from-indigo-400 to-purple-400 text-slate-950 px-2 py-0.5 rounded-full uppercase tracking-wider shadow-xs">QUANTITY ONLY</span>
+            </div>
+            <p class="text-xs text-slate-300 font-light mt-0.5 leading-none">บริษัท แพนไทย อุตสาหกรรม จำกัด · บันทึกจำนวนกล่องและติดตามสถานะจัดส่ง</p>
+          </div>
+        </div>
+
+        <!-- Action Header Buttons -->
+        <div class="flex items-center gap-2">
+          <button onclick="exportJSON()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800/90 hover:bg-slate-700/90 text-purple-200 hover:text-white text-xs font-semibold rounded-lg border border-purple-500/30 transition-all shadow-xs active:scale-95">
+            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+            <span class="hidden sm:inline">สำรองข้อมูล (JSON)</span>
+            <span class="sm:hidden">JSON</span>
+          </button>
+
+          <label class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800/90 hover:bg-slate-700/90 text-indigo-200 hover:text-white text-xs font-semibold rounded-lg border border-indigo-500/30 transition-all shadow-xs cursor-pointer active:scale-95">
+            <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+            <span class="hidden sm:inline">นำเข้าข้อมูล</span>
+            <span class="sm:hidden">นำเข้า</span>
+            <input type="file" id="importFileInput" accept=".json" class="hidden" onchange="importJSON(event)">
+          </label>
+
+          <button onclick="exportCSV()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-lg transition-all shadow-xs active:scale-95">
+            <svg class="w-4 h-4 text-emerald-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span>ส่งออก Excel</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container (Zero Scroll Full Screen Layout) -->
+  <main class="flex-1 w-full max-w-[1920px] mx-auto px-3 py-2.5 min-h-0 overflow-hidden">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 h-full min-h-0">
+
+      <!-- LEFT COLUMN: Compact Order Form Card (4 Cols) -->
+      <div class="lg:col-span-4 bg-white rounded-xl shadow-md border border-slate-200/90 p-3 sm:p-3.5 flex flex-col h-full min-h-0 justify-between overflow-hidden">
+        
+        <form id="orderForm" onsubmit="addOrder(event)" class="flex flex-col h-full min-h-0 space-y-2.5">
+          
+          <!-- Form Header -->
+          <div class="flex items-center justify-between pb-2 border-b border-slate-100 shrink-0">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-4.5 bg-gradient-to-b from-indigo-500 to-blue-600 rounded-full inline-block"></span>
+              <h2 class="text-sm sm:text-base font-extrabold text-slate-900 leading-none">สร้างออเดอร์ใหม่</h2>
+            </div>
+            <span class="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200/80 px-2.5 py-0.5 rounded-full leading-none">ฟอร์มบันทึก</span>
+          </div>
+
+          <!-- Customer Selection -->
+          <div class="bg-indigo-50/60 p-2.5 rounded-lg border border-indigo-100 shrink-0">
+            <div class="flex justify-between items-center mb-1.5">
+              <label class="block text-xs sm:text-sm font-bold text-indigo-900 leading-none">👤 1. เลือกลูกค้า <span class="text-rose-500">*</span></label>
+              <button type="button" onclick="openAddCustomerModal()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded shadow-2xs flex items-center gap-1 leading-none transition-all active:scale-95">
+                <span>➕ เพิ่มลูกค้าใหม่</span>
+              </button>
+            </div>
+            <select id="customerSelect" onchange="onCustomerChange()" required class="w-full px-3 py-2 text-xs sm:text-sm bg-white border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-900 cursor-pointer">
+              <option value="">-- เลือกลูกค้า --</option>
+            </select>
+          </div>
+
+          <!-- Product Selection Section -->
+          <div class="bg-gradient-to-br from-purple-50/70 to-blue-50/70 p-2.5 rounded-lg border border-purple-100 space-y-2 shrink-0">
+            <div class="flex justify-between items-center">
+              <label class="block text-xs sm:text-sm font-bold text-purple-900 leading-none">📦 2. เลือกสินค้า & จำนวนกล่อง <span class="text-rose-500">*</span></label>
+              <button type="button" onclick="openAddProductModal()" id="btnAddProduct" disabled class="px-2.5 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded shadow-2xs flex items-center gap-1 leading-none transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed">
+                <span>➕ เพิ่มสินค้าใหม่</span>
+              </button>
+            </div>
+            
+            <select id="productSelect" onchange="onProductChange()" disabled class="w-full px-3 py-2 text-xs sm:text-sm bg-white border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 font-bold text-slate-900 disabled:bg-slate-100 disabled:text-slate-400 cursor-pointer">
+              <option value="">-- กรุณาเลือกลูกค้าก่อน --</option>
+            </select>
+
+            <!-- Quantity & Add Item Button -->
+            <div class="grid grid-cols-12 gap-2 items-end">
+              <div class="col-span-6">
+                <label class="block text-xs font-bold text-slate-700 mb-1">จำนวน (ใบ)</label>
+                <input type="number" id="quantity" value="1" min="1" class="w-full px-3 py-1.5 text-xs sm:text-sm border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 font-extrabold text-indigo-950 bg-white">
+              </div>
+              <div class="col-span-6">
+                <button type="button" onclick="addItemToCart()" id="btnAddToCart" disabled class="w-full py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-extrabold text-xs sm:text-sm rounded-lg shadow-2xs transition-all active:scale-95 flex items-center justify-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed">
+                  <span>➕ เพิ่มรายการ</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Flexible Temporary Basket Table -->
+          <div class="flex-1 min-h-0 border border-slate-200 rounded-lg overflow-hidden bg-slate-50/60 flex flex-col">
+            <div class="bg-slate-200/90 px-3 py-1.5 flex justify-between items-center border-b border-slate-200 shrink-0">
+              <span class="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-1">
+                🛒 รายการสินค้าในออเดอร์ (<span id="cartCount">0</span>)
+              </span>
+              <span class="text-xs font-bold text-indigo-800 bg-indigo-100 px-2 py-0.5 rounded">
+                รวม: <span id="cartTotalQty">0</span> ใบ
+              </span>
+            </div>
+            
+            <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-1">
+              <table class="w-full text-left text-xs sm:text-sm">
+                <thead class="text-xs text-slate-600 font-extrabold uppercase border-b border-slate-200 sticky top-0 bg-slate-100 z-10">
+                  <tr>
+                    <th class="py-1.5 px-2">ชื่อสินค้า / กล่อง</th>
+                    <th class="py-1.5 px-2 text-right">จำนวน (ใบ)</th>
+                    <th class="py-1.5 px-1 text-center">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody id="cartTableBody">
+                  <tr>
+                    <td colspan="3" class="py-4 text-center text-slate-400 text-xs sm:text-sm">ยังไม่มีรายการสินค้าในตะกร้า</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Bottom Inputs & Actions -->
+          <div class="space-y-2 shrink-0">
+            <div class="grid grid-cols-12 gap-2">
+              <div class="col-span-5">
+                <label class="block text-xs font-bold text-slate-700 mb-0.5">📅 วัน-เวลา บันทึก</label>
+                <input type="datetime-local" id="orderDate" required class="w-full px-2.5 py-1.5 text-xs bg-amber-50/60 border border-amber-200 rounded-lg focus:outline-none font-bold text-slate-800">
+              </div>
+              <div class="col-span-7">
+                <label class="block text-xs font-bold text-slate-700 mb-0.5">📝 หมายเหตุเพิ่มเติม</label>
+                <input type="text" id="note" placeholder="เช่น ส่งด่วน, พิมพ์ลายพิเศษ" class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none text-slate-800">
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" id="btnSubmitOrder" disabled class="w-full py-2.5 bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 hover:from-indigo-700 hover:to-blue-800 text-white font-extrabold text-xs sm:text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5 active:scale-98 disabled:opacity-40 disabled:cursor-not-allowed">
+              <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+              <span>บันทึกออเดอร์เข้าระบบ</span>
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Order List Dashboard (8 Cols) -->
+      <div class="lg:col-span-8 bg-white rounded-xl shadow-md border border-slate-200/90 p-3 sm:p-3.5 flex flex-col h-full min-h-0 overflow-hidden">
+        
+        <!-- Table Header & Summary Counters -->
+        <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 shrink-0 gap-2">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-base border border-indigo-100 shadow-2xs">
+              📋
+            </div>
+            <div>
+              <h2 class="text-sm sm:text-base font-bold text-slate-900 leading-none">รายการออเดอร์ทั้งหมด</h2>
+              <p class="text-xs text-slate-400 leading-none mt-1">แสดงรายการสั่งผลิตกล่องและสถานะการจัดส่ง</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span id="orderCount" class="text-xs sm:text-sm font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200/80 px-3 py-1 rounded-full">
+              0 รายการ
+            </span>
+          </div>
+        </div>
+
+        <!-- Scrollable Dashboard Table Container -->
+        <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar my-2 border border-slate-200/60 rounded-lg">
+          <table class="w-full text-left border-separate border-spacing-0">
+            <thead class="sticky top-0 z-10 bg-slate-100 shadow-2xs">
+              <tr class="text-slate-700 text-xs sm:text-sm font-extrabold uppercase tracking-wider border-b border-slate-200">
+                <th class="py-2.5 px-3 rounded-tl-lg border-b border-slate-200 whitespace-nowrap">วัน-เวลา</th>
+                <th class="py-2.5 px-3 border-b border-slate-200 whitespace-nowrap">ลูกค้า</th>
+                <th class="py-2.5 px-3 border-b border-slate-200">รายการสินค้า / กล่อง</th>
+                <th class="py-2.5 px-3 text-right border-b border-slate-200 whitespace-nowrap">จำนวนรวม (ใบ)</th>
+                <th class="py-2.5 px-3 text-center border-b border-slate-200 whitespace-nowrap">สถานะ</th>
+                <th class="py-2.5 px-3 border-b border-slate-200">หมายเหตุ / ส่งไม่ครบ</th>
+                <th class="py-2.5 px-3 text-center rounded-tr-lg border-b border-slate-200 whitespace-nowrap">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="orderTableBody" class="divide-y divide-slate-100 text-xs sm:text-sm">
+              <!-- Order Rows Rendered Here -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Dashboard Summary Footer (Fixed Bottom Frame) -->
+        <div class="pt-2 border-t border-slate-100 flex justify-between items-center bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 px-3.5 py-2.5 rounded-lg text-white shrink-0 shadow-xs">
+          <div class="flex items-center gap-2 text-xs sm:text-sm">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="text-slate-300">สถานะระบบ: <strong class="font-bold text-white">พร้อมใช้งาน (บันทึกอัตโนมัติ)</strong></span>
+          </div>
+          <div class="flex items-baseline gap-2.5">
+            <span class="text-xs sm:text-sm font-bold text-slate-300 uppercase">ยอดรวมกล่องสินค้าทั้งหมด:</span>
+            <span id="grandTotalQty" class="text-xl sm:text-2xl font-black text-amber-400 tracking-tight leading-none">0 ใบ</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- MODAL 1: Add New Customer -->
+  <div id="addCustomerModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4 z-50 transition-all">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-5 space-y-4 border border-slate-100">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-lg">👤</div>
+          <div>
+            <h3 class="text-base font-extrabold text-slate-900">เพิ่มรายชื่อลูกค้าใหม่</h3>
+            <p class="text-xs text-slate-400">บันทึกเข้าฐานข้อมูลหลักประจำเครื่อง</p>
+          </div>
+        </div>
+        <button onclick="closeAddCustomerModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors text-xl font-bold">&times;</button>
+      </div>
+      <div>
+        <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1">ชื่อลูกค้า / บริษัท <span class="text-rose-500">*</span></label>
+        <input type="text" id="newCustomerInput" placeholder="เช่น บริษัท ชัยเจริญภัณฑ์ จำกัด" class="w-full px-3 py-2 text-xs sm:text-sm border-2 border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-semibold">
+      </div>
+      <div class="flex justify-end gap-2 pt-1">
+        <button type="button" onclick="closeAddCustomerModal()" class="px-4 py-2 text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-lg transition">ยกเลิก</button>
+        <button type="button" onclick="saveNewCustomer()" class="px-4 py-2 text-xs sm:text-sm font-extrabold bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white rounded-lg transition shadow-md">บันทึกข้อมูล</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: Add New Product -->
+  <div id="addProductModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4 z-50 transition-all">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-5 space-y-4 border border-slate-100">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-lg">📦</div>
+          <div>
+            <h3 class="text-base font-extrabold text-slate-900">เพิ่มรายการสินค้า/กล่อง</h3>
+            <p class="text-xs text-slate-400">ผูกกับลูกค้ารายที่เลือกไว้</p>
+          </div>
+        </div>
+        <button onclick="closeAddProductModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors text-xl font-bold">&times;</button>
+      </div>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">ลูกค้าที่เลือก</label>
+          <input type="text" id="modalCustomerName" readonly class="w-full px-3 py-2 text-xs sm:text-sm border-2 border-slate-200 bg-slate-100 font-extrabold text-slate-700 rounded-xl cursor-not-allowed">
+        </div>
+        <div>
+          <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1">ชื่อสินค้า / ชื่อกล่อง (พร้อมรหัส) <span class="text-rose-500">*</span></label>
+          <input type="text" id="newProductNameInput" placeholder="เช่น B-Box 50 (BX001)" class="w-full px-3 py-2 text-xs sm:text-sm border-2 border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 font-semibold">
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-1">
+        <button type="button" onclick="closeAddProductModal()" class="px-4 py-2 text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-lg transition">ยกเลิก</button>
+        <button type="button" onclick="saveNewProduct()" class="px-4 py-2 text-xs sm:text-sm font-extrabold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg transition shadow-md">บันทึกสินค้าใหม่</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Alert Modal Replace browser alert -->
+  <div id="alertModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-5 text-center space-y-3 border border-slate-100">
+      <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-600 mx-auto flex items-center justify-center font-bold text-xl">⚠️</div>
+      <p id="alertMessage" class="text-sm sm:text-base font-bold text-slate-800"></p>
+      <button onclick="closeAlertModal()" class="w-full py-2 bg-slate-900 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs">ตกลง</button>
+    </div>
+  </div>
+
+  <script>
+    // Master data without prices
+    const defaultCustomerProductsMaster = {"วรวิทย์": [{"name": "B-D Sure (BA001)"}, {"name": "B-DD 101 (กลมเดี่ยว) นอก (BA002)"}, {"name": "B-DD 101 (กลมเดี่ยว) ใน (BA003)"}, {"name": "B-HS 15 (BA004)"}, {"name": "B-Kawa แดง (BA005)"}, {"name": "B-KAWA-Head-spary 1 ใน (BA006)"}, {"name": "B-LA 201 นอก (BA007)"}, {"name": "B-LA 201 ใน (BA008)"}, {"name": "B-LA 202 นอก (BA009)"}, {"name": "B-LA 202 ใน (BA010)"}, {"name": "B-M 403 นอก (BA011/1)"}, {"name": "B-M 403 ใน (BA012/1)"}, {"name": "B-M 803 นอก (BA013/1)"}, {"name": "B-M 803 ใน (BA014/1)"}, {"name": "B-K404 ใน (BA014/2)"}, {"name": "B-K404 นอก (BA013/2)"}, {"name": "B-NAS 555 นอก (BA015)"}, {"name": "B-NAS 555 ใน (BA016)"}, {"name": "B-NAS 666 นอก (BA017)"}, {"name": "B-NAS 666 ใน (BA018)"}, {"name": "B-D Rox กลม นอก (BA019/1)"}, {"name": "B-JSS 9000 นอก (BA019/2)"}, {"name": "B-SS 103 นอก (BA019/3)"}, {"name": "B-DM 103 นอก (BA019/4)"}, {"name": "B-D Rox กลม ใน (BA019/5)"}, {"name": "B-JSS 9000 กลม ใน (BA020/1)"}, {"name": "B-SS 103 ใน (BA020/2)"}, {"name": "B-DM 103 ใน (BA020/3)"}, {"name": "B-D Rox เหลี่ยม นอก (BA021/1)"}, {"name": "B-JSS 9100 เหลี่ยม  นอก (BA021/2)"}, {"name": "B-Robin 211 นอก (BA021/3)"}, {"name": "B-SS 113 นอก (BA021/4)"}, {"name": "B-TNT 101 นอก (BA021/5)"}, {"name": "B-DM 113 นอก (BA021/6)"}, {"name": "B-CABINA 113 นอก (BA021/7)"}, {"name": "B-D Rox เหลี่ยม ใน (BA022/1)"}, {"name": "B-JSS 9100 เหลี่ยม  ใน (BA022/2)"}, {"name": "B-Robin 211 ใน (BA022/3)"}, {"name": "B-SS 113 ใน (BA022/4)"}, {"name": "B-TNT 101 ใน (BA022/5)"}, {"name": "B-DM 113 ใน (BA022/6)"}, {"name": "B-CABINA 113 ใน (BA022/7)"}, {"name": "B-SS 15 (BA023)"}, {"name": "B-SS 404-405 นอก (BA024/1)"}, {"name": "B-DM 404,405 นอก (BA024/2)"}, {"name": "B-KJ 007 นอก (BA024/3)"}, {"name": "B-SS 404-405 ใน (BA025/1)"}, {"name": "B-DM 404,405 ใน (BA025/2)"}, {"name": "B-KJ 007 ใน (BA025/3)"}, {"name": "B-SS 454 นอก (BA026/1)"}, {"name": "B-SS 455 นอก (BA026/2)"}, {"name": "B-KJ 006 นอก (BA026/3)"}, {"name": "B-SS 454 ใน (BA027/1)"}, {"name": "B-SS 455 ใน (BA027/2)"}, {"name": "B-KJ-006 ใน (BA027/3)"}, {"name": "B-K 212 นอก (BA028/1)"}, {"name": "B-SS 456 นอก (BA028/2)"}, {"name": "B-SS 458 นอก (BA028/3)"}, {"name": "B-SY 3000 นอก (BA028/4)"}, {"name": "B-S7 456 นอก (BA028/5)"}, {"name": "B-DM 456 นอก (BA028/6)"}, {"name": "B-ALL 456 นอก (BA028/7)"}, {"name": "B-K 212 ใน (BA029/1)"}, {"name": "B-SS 456 ใน (BA029/2)"}, {"name": "B-SS 458 ใน (BA029/3)"}, {"name": "B-SY 3000 ใน (BA029/4)"}, {"name": "B-DM 456 ใน (BA029/5)"}, {"name": "** (BA029/6)"}, {"name": "B-KJ 002 นอก (BA030/1)"}, {"name": "B-LW 999 นอก (BA030/2)"}, {"name": "B-SY 1000 นอก (BA030/3)"}, {"name": "B-KJ 002 ใน (BA031/1)"}, {"name": "B-LW 999 ใน (BA031/2)"}, {"name": "B-SY 1000 ใน (BA031/3)"}, {"name": "B-KJ 003 นอก (BA032/1)"}, {"name": "B-LW 888 นอก (BA032/2)"}, {"name": "B-SY 2000 นอก (BA032/3)"}, {"name": "B-KJ 003 ใน (BA033/1)"}, {"name": "B-LW 888 ใน (BA033/2)"}, {"name": "B-SY 2000 ใน (BA033/3)"}, {"name": "B-Wawa นอก (BA034)"}, {"name": "B-Wawa ใน (BA035)"}, {"name": "B-AZ BBB นอก (BA036/1)"}, {"name": "B-DD 303 นอก (BA036/2)"}, {"name": "B-UBBB นอก (BA036/3)"}, {"name": "B-ZM 303 นอก (BA036/4)"}, {"name": "B-AZ BBB ใน (BA037/1)"}, {"name": "B-DD 303 ใน (BA037/2)"}, {"name": "B-U-BBB ใน (BA037/3)"}, {"name": "B-ZM 303 ใน (BA037/4)"}, {"name": "B-AZ AAA นอก (BA038/1)"}, {"name": "B-DD 333 นอก (BA038/2)"}, {"name": "B-UAAA นอก (BA038/3)"}, {"name": "B-ZM 313 นอก (BA038/4)"}, {"name": "B-AZ AAA ใน (BA039/1)"}, {"name": "B-DD 333 ใน (BA039/2)"}, {"name": "B-UAAA ใน (BA039/3)"}, {"name": "B-ZM 313 ใน (BA039/4)"}, {"name": "B-LW 222 นอก (BA040/1)"}, {"name": "B-ZM 444 นอก (BA040/2)"}, {"name": "B-LW 222 ใน (BA041/1)"}, {"name": "B-ZM 444 ใน (BA041/2)"}, {"name": "B-ค.ม.เล็ก (BA042)"}, {"name": "B-ค.ม.ใหญ่ 1ชั้น (BA043)"}, {"name": "B-ค.ม.ใหญ่ 2ชั้น (BA044)"}, {"name": "B-ฝักบัว 1 (BA045)"}, {"name": "B-ฝักบัว 2 (BA046)"}, {"name": "B-กล่องนอกฝารองนั่ง (BA047/1)"}, {"name": "B-ฝารองนั่งนอก Vegarr (BA047/2)"}, {"name": "B-ลังหมวกสวนหลวง (BA049)"}, {"name": "B-กล่องหิ้ง (BA050)"}, {"name": "B-DD 111 นอก (BA051/1)"}, {"name": "B-LW 111 นอก (BA051/2)"}, {"name": "B-ZM 333 นอก (BA051/3)"}, {"name": "B-DD 111 ใน (BA052/1)"}, {"name": "B-LW 111 ใน (BA052/2)"}, {"name": "B-ZM 333 ใน (BA052/3)"}, {"name": "B-Berlin (BA053)"}, {"name": "B-ฉลากฝารองนั่ง MR-101 (BA054/1)"}, {"name": "B-ฉลากฝารองนั่ง SY-111 (BA054/2)"}, {"name": "B-ฉลากฝารองนั่ง LW-555 (BA054/3)"}, {"name": "B-ฉลากฝารองนั่ง VEGARR (BA054/4)"}, {"name": "B-ฉลากฝารองนั่ง SESA (BA054/5)"}, {"name": "B-ฉลากฝารองนั่ง Palm tree (BA054/7)"}, {"name": "B-ฉลากฝารองนั่ง RAMA 1-2 (BA059/4)"}, {"name": "B-ฉลากฝารองนั่ง RAMA 3-4 (BA059/3)"}, {"name": "B-ฉลากฝารองนั่ง LW-444 (BA059/2)"}, {"name": "B-ฉลากฝารองนั่ง Amezon (BA059/1)"}, {"name": "B-ฉลากฝาทรงรี Palm tree (BA059/5)"}, {"name": "B-ฉลากฝาทรงรี WAWA (BA059/6)"}, {"name": "B-ฉลากฝารองนั่ง LASUMO (BA054/9)"}, {"name": "B-กล่องสายวรวิทย์ (BA048)"}, {"name": "B-กล่องสายอุดมชัย (BA055)"}, {"name": "B-Kawa ชำระ-ฝักบัว ใน (BA057)"}, {"name": "B-Kawa ชำระ-ฝักบัว นอก (BA056)"}, {"name": "B-KAWA-Head-spary 1 นอก (BA061)"}, {"name": "B-Coral ใน (BA062)"}, {"name": "B-Coral นอก (BA063)"}, {"name": "B-กล่องท่อย่นสวนหลวง (BA064)"}, {"name": "B-ฉลากฝารองนั่งกลม WAWA (BA054/8)"}, {"name": "B-แผ่นรองกระจก (ลัง)"}, {"name": "B-2โหล (BS002)"}], "HITACHI": [{"name": "B-HITACHI # 13 (BB004)"}, {"name": "B-ไส้ ABB13 (BB004/1)"}, {"name": "B-ABB33 (BB005)"}, {"name": "B-ABB43 (BB006)"}, {"name": "B-ABB53 (BB007)"}, {"name": "B-ABB63 (BB001)"}, {"name": "B-ABB83 (BB008)"}, {"name": "B-Element (BB002)"}, {"name": "B-ไส้ Element (ชุดละ 10 ชิ้น) (BB003)"}, {"name": "B-ABB 5 ชั้น 300x180x250 (BB009)"}, {"name": "B-ABB 59 (BB010)"}], "วรกิจ": [{"name": "B-วรกิจ 1 พิมพ์ป้าย (BC001/2)"}, {"name": "B-วรกิจ 2 พิมพ์ป้าย (BC002/2)"}, {"name": "B-วรกิจ 4 (BC003)"}], "Boss AK": [{"name": "B-บานพับ2แบบ (BD007)"}, {"name": "B-แผ่นปิดเชิงชาย นอก (BD009)"}, {"name": "B-แผ่นปิดเชิงชาย ใน (BD008)"}, {"name": "B-ฝักบัว1 ไม่พิมพ์ (BD002)"}, {"name": "B-ฝักบัวบรรจุ12 (BD003)"}, {"name": "B-ฝักบัวบรรจุ24 (BD004)"}, {"name": "B-ฝักบัวอเมซอน (BD001/1)"}, {"name": "B-ฝักบัวอเมซอน ไม่พิมพ์ (BD001/2)"}, {"name": "B-ราวแขวน45-60 (BD006)"}, {"name": "B-ราวแขวน75-90 (BD005)"}, {"name": "B-ก๊อกน้ำคอสั้นใน (BD010)"}, {"name": "B-ก๊อกน้ำคอสั้นนอก (BD011)"}, {"name": "B-ก๊อกน้ำคอยาวใน (BD012)"}, {"name": "B-ก๊อกน้ำคอยาวนอก (BD014)"}, {"name": "B-กล่องวาล์ว บรรจุ 72 (BD013)"}, {"name": "B-ฝักบัวอเมซอนเพิ่มสูง (BD015)"}, {"name": "B-กล่องอ่าง K45"}, {"name": "B-กล่องอ่าง K1050"}, {"name": "B-BOX-C / BOSS AK (BD016)"}], "SL": [{"name": "B-Giavani (BE001)"}, {"name": "B-KS 1 (BE002)"}, {"name": "B-TSL 1 (BE003)"}, {"name": "B-TSL 11 (BE004)"}, {"name": "B-TSL 2 (BE005)"}, {"name": "B-TSL 2/2 (BE006)"}, {"name": "B-TSL 2/5 (BE007)"}, {"name": "B-TSL 3/5 (BE008)"}, {"name": "B-TSL 4/3 (BE009)"}, {"name": "B-TSL 5 (BE010)"}, {"name": "B-TSL 6/3 (BE011)"}, {"name": "B-TSL 6/5 (BE012)"}, {"name": "B-TSL 7/5 (BE013)"}, {"name": "B-กรรไกร SL (BE014)"}, {"name": "B-คราด (BE015)"}, {"name": "B-ฝารองนั่งบรรจุ3 (BE016)"}, {"name": "B-TSL 4/5 (BE017)"}, {"name": "B-ราวแขวนผ้า (BE018)"}, {"name": "B-แผ่นรอง SL (BE019)"}, {"name": "B-บานพับ 310x335x180"}, {"name": "B-กล่องไม้ถูพื้นแจ๋วแหว๋ว (BE021)"}, {"name": "B-TSL # 259 (BE020)"}, {"name": "B-TSL 2/3 (BE022)"}, {"name": "B-มุมกระจก 2.5 cm."}, {"name": "B-มุมกระจก 3.5 cm."}, {"name": "B-กรรไกร SL 3 ชั้น (BE025)"}], "SV": [{"name": "B-90/97 ฝ้าเพดาน (BF011)"}, {"name": "B-100/97 (BF001)"}, {"name": "B-200/97 (BF002)"}, {"name": "B-500/97 (BF003/1)"}, {"name": "B-D&D (BF003/2)"}, {"name": "B-H. Decor (BF003/3)"}, {"name": "B-Mizu 0724 (BF003/4)"}, {"name": "B-Home Decore (BF003/5)"}, {"name": "B-SPK 450 (BF003/7)"}, {"name": "B-SPK 500 (BF003/8)"}, {"name": "B-SPK 600 (BF004/5)"}, {"name": "B-600/97 (BF004/1)"}, {"name": "B-Mizu 2440 (BF004/2)"}, {"name": "B-ขาแขวนบรรจุ2 (BF004/3)"}, {"name": "B-Bonne 45 (BF005/1)"}, {"name": "B-DR 45 (BF005/2)"}, {"name": "B-LPD 45 (BF005/4)"}, {"name": "B-SCT 45 (BF005/5)"}, {"name": "B-Bonne 50 (BF006/1)"}, {"name": "B-DR 50 (BF006/2)"}, {"name": "B-Kenzai 45 (BF005/3)"}, {"name": "B-Kenzai 50 (BF006/3)"}, {"name": "B-Kenzai 60 (BF009/6)"}, {"name": "B-LPD 50 (BF006/4)"}, {"name": "B-CENTRAL AIR 50 (BF012/3)"}, {"name": "B-SCT 50 (BF006/6)"}, {"name": "B-SK 50 (BF006/7)"}, {"name": "B-Mitzawa (BF007)"}, {"name": "B-SV นอก (BF008/1)"}, {"name": "B-Alshaaf ใน (BF003/6)"}, {"name": "B-Alshaaf นอก (BF008/2)"}, {"name": "B-DS-45 (BF005/6)"}, {"name": "B-DS-50 (BF006/8)"}, {"name": "B-DS-60 (BF009/1)"}, {"name": "B-BB-45 (BF005/8)"}, {"name": "B-BB-50 (BF005/7)"}, {"name": "B-BB-60 (BF009/2)"}, {"name": "B-HERO-45 (BF005/9)"}, {"name": "B-HERO-50 (BF005/10)"}, {"name": "B-HERO-60 (BF009/3)"}, {"name": "B-SMT-450 ใน (SVT) (BF005/11)"}, {"name": "B-SMT-450 นอก (BF008/3)"}, {"name": "B-SMT-500 ใน (SVT) (BF005/12)"}, {"name": "B-SMT-500 นอก (BF008/4)"}, {"name": "B-SMT-600 ใน (BF009/4)"}, {"name": "B-SMT-600 นอก (BF008/5)"}, {"name": "B-3D-45 (BF005/13)"}, {"name": "B-3D-50 (BF005/14)"}, {"name": "B-3D-60 (BF009/5)"}, {"name": "B-SVT-45 (BF003/10)"}, {"name": "B-SVT-50 (BF003/9)"}, {"name": "B-SVT-60 (BF004/4)"}, {"name": "B-Lorex-45 ใน (ใหม่)"}, {"name": "B-Lorex-50 ใน (ใหม่)"}, {"name": "B-Lorex-45 นอก (ใหม่)"}, {"name": "B-Lorex-50 นอก (ใหม่)"}, {"name": "B-หิ้ง 2 นิ้ว (BF013)"}, {"name": "B-CENTRAL AIR 45 (BF012/5)"}, {"name": "B-CENTRAL AIR 50 (BF012/3)"}, {"name": "B-Fujitsu 50 (BF012/6)"}, {"name": "B-Hitachi 50 (BF012/4)"}, {"name": "B-DAIKIN-45 (BF003/13)"}, {"name": "B-DAIKIN-50 (BF003/12)"}, {"name": "B-Vstrong-45"}, {"name": "B-Vstrong-50"}, {"name": "B-Vstrong-60"}, {"name": "B-กล่องขาสกี (ไม่ต้องลง)"}, {"name": "B-DENZO-45 (ใหม่)"}], "VRV": [{"name": "B-VRV 0 (BG001)"}, {"name": "B-VRV 1 (BG002)"}, {"name": "B-VRV 10 (BG003)"}, {"name": "B-VRV 12 (BG004)"}, {"name": "B-VRV 13 (BG005)"}, {"name": "B-VRV 3 (BG006)"}, {"name": "B-VRV 5 (BG007)"}, {"name": "B-VRV 6 (BG008)"}, {"name": "B-VRV 6 1/2 (BG009)"}, {"name": "B-VRV 7 (BG010)"}, {"name": "B-VRV 9 (BG011)"}], "บุญวรรณ": [{"name": "B-5ชั้น BW (BH001/1)"}, {"name": "B-5ชั้น Falin (BH001/2)"}, {"name": "B-5ชั้น นิวเอเซีย (BH001/3)"}, {"name": "B-ล็อคล้อ AT (BH002/1)"}, {"name": "B-Katoji (BH002/2)"}, {"name": "B-ล๊อคล้อ BJ (BH002/3)"}, {"name": "B-เปลกรง BJ (BH003/1)"}, {"name": "B-เปลกรง AT (BH003/2)"}, {"name": "B-เปลโซ่ BJ (BH004/1)"}, {"name": "B-เปลโซ่ AT (BH004/2)"}, {"name": "B-เปลอุ้ม (BH005)"}, {"name": "B-ไม้แขวนเสื้อ 2006 (BH006)"}, {"name": "B-ไม้แขวนเสื้อ 2007 (BH007)"}], "แพนไทย": [{"name": "B-PT95 (BI001)"}, {"name": "B-PT99 (BI002)"}, {"name": "B-แท่นตัด 14 นิ้ว (BI003)"}, {"name": "B-แท่นตัด 16 นิ้ว (BI004)"}, {"name": "B-ปั๊มDAP (BI005/1)"}, {"name": "B-ปั๊มDAP ไม่พิมพ์ (BI005/2)"}, {"name": "B-ปั๊มเติมอากาศ (BI006)"}, {"name": "B-K 40 (BI007/1)"}, {"name": "B-K 50 (BI007/2)"}, {"name": "B-K 60 (BI007/3)"}, {"name": "B-T 40 (BI007/4)"}, {"name": "B-T 50 (BI007/5)"}, {"name": "B-T 60 (BI007/6)"}, {"name": "B-TB 322 (BI007/7)"}, {"name": "B-TB 324 (BI007/8)"}, {"name": "B-Y 400 (BI007/9)"}, {"name": "B-Y 500 (BI007/10)"}, {"name": "B-Y 600 (BI007/11)"}, {"name": "B-TB 321 (BI007/12)"}, {"name": "B-ไส้ปั้มแพนไทย (BI008)"}], "สมชาย": [{"name": "B-Master Key 3 (BJ001)"}, {"name": "B-Master Key 4 (BJ002)"}, {"name": "B-Mokoto 001 (BJ003)"}, {"name": "B-Mokoto 002 (BJ004)"}, {"name": "B-Mokoto 003 (BJ005)"}, {"name": "B-กระดาษทรายสายพราน (BJ006)"}, {"name": "B-กลอนบรรจุ 40 (BJ007)"}, {"name": "B-กลอนบรรจุ 60 (BJ008)"}, {"name": "B-จอบตราหมี (BJ009)"}, {"name": "B-ตะปู (BJ010)"}, {"name": "B-บานพับ 10\" 444 (BJ011)"}, {"name": "B-บานพับ 12\" 444 (BJ012)"}, {"name": "B-บานพับทองเหลือง 222 นอก (BJ013)"}, {"name": "B-บานพับทองเหลือง 222 ใน (BJ014)"}, {"name": "B-บานพับรมดำ 222 (BJ015)"}, {"name": "B-บานพับสีบรอนด์ 3\" 1/2 (BJ016)"}, {"name": "B-บานพับสีบรอนด์ 3\" (BJ017)"}, {"name": "B-บานพับสีบรอนด์ 4\" (BJ018)"}, {"name": "B-แปรงลูกกลิ้งทาสี (BJ019)"}, {"name": "B-ฝักบัว Ocean นอก (BJ020)"}, {"name": "B-ฝักบัว Ocean ใน (BJ021)"}, {"name": "B-พุ๊กเหล็ก (BJ022)"}, {"name": "B-ลวดเชื่อม (BJ023)"}, {"name": "B-แว่นตา (BJ024)"}, {"name": "B-สกรูดรายวอล์ (BJ025)"}, {"name": "B-สกรูปลายสว่าน (BJ026)"}, {"name": "B-สกัดตราหมี (BJ027)"}, {"name": "B-สะดืออ่างล้างจาน (BJ028)"}, {"name": "B-อ่าง1050 B (BJ029)"}, {"name": "B-อ่าง1250 B (BJ030)"}, {"name": "B-อ่างOC50 B (BJ031)"}, {"name": "B-กล่องกลอนประตู Mokoto (BJ032)"}, {"name": "B-กล่องจอบตราหมี 3 P (BJ037)"}, {"name": "B-กล่องจอบตราหมี 2 P (BJ034)"}, {"name": "B-ก๊อก 666 (BJ035)"}, {"name": "B-ก๊อกน้ำบรรจุ 30 (BJ036)"}, {"name": "ตัววัดระดับน้ำ (BJ038)"}], "สยามเอ้าเลต": [{"name": "B-BOX-AH (BW001)"}, {"name": "B-BOX-AA (BW002)"}, {"name": "B-BOX-A (BW003)"}, {"name": "B-BOX-2A (BW004)"}, {"name": "B-BOX-B (BW005)"}, {"name": "B-BOX-2B (BW006)"}, {"name": "B-BOX-C (BW007)"}, {"name": "B-BOX-D (BW008)"}, {"name": "B-BOX-E (BW009)"}, {"name": "B-BOX-F (BW010)"}, {"name": "B-BOX-I (ไอ) (BW011)"}, {"name": "B-BOX-DRJL2 (BW012)"}, {"name": "B-BOX-DRJL1 (BW013)"}, {"name": "B-BOX-DRJL3 (BW015)"}, {"name": "B-BOX-DRJL4 (BW016)"}, {"name": "B-BOX-DRJL5 (BW017)"}, {"name": "B-BOX-BH (BW014)"}, {"name": "B-BOX-J2-5 (158) (BW019)"}, {"name": "B-BOX-L (BW018)"}, {"name": "B-BOX-Dr.JILL S (ไม่ต้องลง)"}], "อุดมชัย": [{"name": "B-K155-20 (BM001)"}, {"name": "B-K155-60 (BM002)"}, {"name": "B-K200-20 (BM003)"}, {"name": "B-K200-60 3ชั้น (BM004)"}, {"name": "B-K200-60 5ชั้น #10 (BM005)"}, {"name": "B-Miki Valve (BM006/1)"}, {"name": "B-Mirco Valve (BM006/2)"}, {"name": "B-กันกลิ่นเล็ก ไม่พิมพ์ (BM007)"}, {"name": "B-ท่อน้ำทิ้งsigma (BM008)"}, {"name": "B-อุดมชัย # 15 (BM009)"}, {"name": "B-472 เล็ก (BM010)"}, {"name": "B-ฝักบัวชำระSS20 (BM011)"}, {"name": "B-ฝักบัวชำระSS25 (BM012)"}, {"name": "B-ลูกลอยCEGO (BM013)"}, {"name": "B-อุดมชัย # 13 (BM014)"}, {"name": "B-สายชำระ UDC แดง (BM015/2)"}, {"name": "B-สายชำระCECOใหญ่ (BM016)"}, {"name": "B-อะไหล่ชักโครกใน #12 (BM017)"}, {"name": "B-อะไหล่ชักโครกนอก (BM018)"}, {"name": "B-สะดืออ่าง บรรจุ20 #14 (BM019)"}, {"name": "B-กันกลิ่นสูง (BM020)"}, {"name": "B-K-155  บรรจุ 50 #11 (BM021)"}, {"name": "B-472 ใหญ่ (BM022)"}, {"name": "B-ข้อต่อท่อเหล็ก (BM023)"}, {"name": "B-472 กลาง (BM024)"}, {"name": "B-กล่องก๊อกคูลเลอร์"}, {"name": "B-อุดมชัยเบอร์ 1 (BM025)"}, {"name": "B-อุดมชัยเบอร์ 2 (BM026)"}], "KEEEN": [{"name": "B-KEEEN 20 ลิตร (BN001)"}, {"name": "B-KEEEN 250 ML เกลียว (BN002)"}, {"name": "B-KEEEN 250 ML สเปรย์ (BN003)"}, {"name": "B-KEEEN 5 ลิตร ทรงสูง (BN015)"}, {"name": "B-KEEEN 1 ลิตร บรรจุ 20 (BN005)"}, {"name": "B-KEEEN 600g (BN006)"}, {"name": "B-KEEEN 1 ลิตร บรรจุ 16 (BN014)"}, {"name": "B-แผ่นรอง 1 ลิตร บรรจุ 16 (BN022)"}, {"name": "B-KEEEN 5 ลิตร ทรงต่ำ (BN016)"}, {"name": "B-KEEEN 5 ลิตร REFILL (ใหม่)"}, {"name": "B-KEEEN COFFEE Amazon (BN021)"}, {"name": "B-UMI COFFEE (BN021/1)"}, {"name": "B-แผ่นรองพาเลท (BN017)"}, {"name": "B-Dr.KEEEN Bathroom (BN019)"}, {"name": "B-Dr.KEEEN Kitchen (BN018)"}, {"name": "B-Dr.KEEEN Handfoam (BN020)"}, {"name": "B-Dr.KEEEN Hygienic (BN023)"}, {"name": "B-ไส้ Kitchenชุด 5 ชิ้น (ชุด) (BN018/1)"}, {"name": "B-KEEEN GERM KILLER (BN028)"}, {"name": "B-DISHWAHING 950 ml. (BN025)"}, {"name": "B-LAUNDRY 950 ml. (BN026)"}, {"name": "B-MILK STAIN REMOVEL (BN024)"}, {"name": "B-KEEEN 5 ลิตร รีฟิล (BN027)"}], "เซ้ง เอนจิเนียริ่ง": [{"name": "B-Mizu ธรรมดา1 22\" (BO001)"}, {"name": "B-18\" 1 ใบพัด2 (BO002)"}, {"name": "B-2 ใบพัดธรรมดา 42'' (BO003)"}, {"name": "B-30\" 1 ใบพัด 30\" (BO004)"}, {"name": "B-2 ใบพัดจัมโบ้ 60'' (BO005)"}, {"name": "B-2 ใบพัดสูง 36''"}, {"name": "B-York 1 (BO006/1)"}, {"name": "B-Starair 1 (BO006/2)"}, {"name": "B-York 2 (BO007/1)"}, {"name": "B-Starair 2 (BO007/2)"}, {"name": "B-York 3 (BO008/1)"}, {"name": "B-Starair 3 (BO008/2)"}, {"name": "B-York 4 (BO009/1)"}, {"name": "B-Starair 4 3 ชั้นใหม่ (BO009/2)"}, {"name": "B-Fancoil 8 (BO010)"}, {"name": "B-Fancoil 12 (BO011)"}, {"name": "B-เหล็กบรรจุ 4 (BO012)"}, {"name": "B-กล่องแอร์ 125 เล็ก (BO013)"}, {"name": "B-กล่องแอร์ 195 26\" (BO015)"}, {"name": "B-กล่องแอร์ 265 (BO014)"}, {"name": "B-กล่องแอร์ 405"}], "ST": [{"name": "B-NO 4 (BR001)"}, {"name": "B-NO 4 5 ชั้น"}, {"name": "B-ฝาส้วม บรรจุ12 (BR003)"}, {"name": "B-ฝาส้วมPVC ไม่มีโลโก้ (BR004)"}, {"name": "B-กล่องรุ่น สี จำนวน # 5 (BR005)"}, {"name": "B-24 x 15 x 15 (BR006)"}, {"name": "B-กล่องพิมพ์ รุ่น บรรจุ ใหญ่ #6 (BR007)"}, {"name": "B-NO 8 (BR008)"}, {"name": "B-อะไหล่ชักโครกใน"}, {"name": "B-อะไหล่ชักโครกนอก"}, {"name": "B-กล่องที่ใส่สบู่ (BR010)"}, {"name": "B-NO 6      3 ชั้น"}], "2 N Part": [{"name": "B-2NP (BS001)"}], "โครมีเทค": [{"name": "B-โครมีเทค (BS007)"}], "ต่อสุวรรณ": [{"name": "B-กล่องเบอร์ 1"}, {"name": "B-กล่องเบอร์ 2"}], "โพลีโคปเวอร์": [{"name": "B-โพลีโคปเวอร์ # 1"}, {"name": "B-โพลีโคปเวอร์ # 2"}, {"name": "B-โพลีโคปเวอร์ # 3"}, {"name": "B-โพลีโคปเวอร์ # 4"}], "KINN": [{"name": "B-KINN # 2 (BV001/1)"}, {"name": "B-KINN # 2B (BV002)"}, {"name": "B-KINN # 3 (BV003)"}, {"name": "B-KINN MY BOX-50 (BV004)"}, {"name": "B-KINN MY BOX-12 (BV005)"}], "ไฮกริม": [{"name": "B-กล่องกระเป๋าปฐมพยาบาล"}], "ไทยนิยม": [{"name": "B-ไทยนิยม # 1 (BY001)"}, {"name": "B-ไทยนิยม # 2 (BY002)"}, {"name": "B-ไทยนิยม # 3 (BY003)"}, {"name": "B-ไทยนิยม # 4 (BY004)"}, {"name": "B-ไทยนิยม # 5 (BY005)"}, {"name": "B-ไทยนิยม # 6 (BY006)"}, {"name": "B-ไทยนิยม # 7 (BY007)"}, {"name": "B-ไทยนิยม # 8 (BY008)"}, {"name": "B-ไทยนิยม # 9 (BY009)"}], "ชัยเจริญภัณฑ์": [{"name": "B-กล่องเบอร์ 10 (BZ001)"}]};
+
+    let customMaster = JSON.parse(localStorage.getItem('custom_master_products_v3'));
+    let customerProductsMaster = customMaster || defaultCustomerProductsMaster;
+    
+    // Temporary Cart Items for Current Order Form
+    let currentCartItems = [];
+
+    function saveMasterData() {
+      localStorage.setItem('custom_master_products_v3', JSON.stringify(customerProductsMaster));
+    }
+
+    let orders = JSON.parse(localStorage.getItem('box_orders_data_v3')) || [];
+
+    // Helper to replace alert
+    function showAlert(msg) {
+      document.getElementById('alertMessage').textContent = msg;
+      document.getElementById('alertModal').classList.remove('hidden');
+    }
+    function closeAlertModal() {
+      document.getElementById('alertModal').classList.add('hidden');
+    }
+
+    function initCustomerDropdown(selectValue = "") {
+      const custSelect = document.getElementById('customerSelect');
+      custSelect.innerHTML = '<option value="">-- กรุณาเลือกลูกค้า --</option>';
+      
+      const customers = Object.keys(customerProductsMaster).sort();
+      customers.forEach(cust => {
+        const opt = document.createElement('option');
+        opt.value = cust;
+        opt.textContent = cust;
+        if (cust === selectValue) opt.selected = true;
+        custSelect.appendChild(opt);
+      });
+
+      if (selectValue) {
+        onCustomerChange();
+      }
+    }
+
+    function onCustomerChange() {
+      const custName = document.getElementById('customerSelect').value;
+      const prodSelect = document.getElementById('productSelect');
+      const btnAddProduct = document.getElementById('btnAddProduct');
+      const btnAddToCart = document.getElementById('btnAddToCart');
+      
+      prodSelect.innerHTML = '';
+
+      // Reset cart if customer changes
+      currentCartItems = [];
+      renderCartTable();
+
+      if (!custName || !customerProductsMaster[custName]) {
+        prodSelect.disabled = true;
+        btnAddProduct.disabled = true;
+        btnAddToCart.disabled = true;
+        prodSelect.innerHTML = '<option value="">-- กรุณาเลือกลูกค้าก่อน --</option>';
+        return;
+      }
+
+      prodSelect.disabled = false;
+      btnAddProduct.disabled = false;
+      prodSelect.innerHTML = '<option value="">-- เลือกรายการสินค้า/กล่อง --</option>';
+      
+      const products = customerProductsMaster[custName];
+      products.forEach((p, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = p.name;
+        prodSelect.appendChild(opt);
+      });
+    }
+
+    function openAddCustomerModal() {
+      document.getElementById('newCustomerInput').value = '';
+      document.getElementById('addCustomerModal').classList.remove('hidden');
+    }
+
+    function closeAddCustomerModal() {
+      document.getElementById('addCustomerModal').classList.add('hidden');
+    }
+
+    function saveNewCustomer() {
+      const newCust = document.getElementById('newCustomerInput').value.trim();
+      if (!newCust) {
+        showAlert('กรุณากรอกชื่อลูกค้า');
+        return;
+      }
+      if (!customerProductsMaster[newCust]) {
+        customerProductsMaster[newCust] = [];
+        saveMasterData();
+      }
+      closeAddCustomerModal();
+      initCustomerDropdown(newCust);
+    }
+
+    function openAddProductModal() {
+      const custName = document.getElementById('customerSelect').value;
+      if (!custName) return;
+      document.getElementById('modalCustomerName').value = custName;
+      document.getElementById('newProductNameInput').value = '';
+      document.getElementById('addProductModal').classList.remove('hidden');
+    }
+
+    function closeAddProductModal() {
+      document.getElementById('addProductModal').classList.add('hidden');
+    }
+
+    function saveNewProduct() {
+      const custName = document.getElementById('modalCustomerName').value;
+      const prodName = document.getElementById('newProductNameInput').value.trim();
+
+      if (!prodName) {
+        showAlert('กรุณากรอกชื่อสินค้า/กล่อง');
+        return;
+      }
+
+      if (!customerProductsMaster[custName]) {
+        customerProductsMaster[custName] = [];
+      }
+
+      customerProductsMaster[custName].push({
+        name: prodName
+      });
+
+      saveMasterData();
+      closeAddProductModal();
+
+      onCustomerChange();
+      const prodSelect = document.getElementById('productSelect');
+      const newIdx = customerProductsMaster[custName].length - 1;
+      prodSelect.value = newIdx;
+      onProductChange();
+    }
+
+    function onProductChange() {
+      const custName = document.getElementById('customerSelect').value;
+      const prodIdx = document.getElementById('productSelect').value;
+      const btnAddToCart = document.getElementById('btnAddToCart');
+
+      if (custName && prodIdx !== "" && customerProductsMaster[custName][prodIdx]) {
+        btnAddToCart.disabled = false;
+      } else {
+        btnAddToCart.disabled = true;
+      }
+    }
+
+    // Add item into temporary cart
+    function addItemToCart() {
+      const custName = document.getElementById('customerSelect').value;
+      const prodIdx = document.getElementById('productSelect').value;
+      const qty = parseInt(document.getElementById('quantity').value) || 1;
+
+      if (!custName || prodIdx === "" || !customerProductsMaster[custName][prodIdx]) {
+        showAlert('กรุณาเลือกรายการสินค้าก่อนเพิ่ม');
+        return;
+      }
+
+      if (qty <= 0) {
+        showAlert('กรุณาระบุจำนวนสินค้าให้ถูกต้อง');
+        return;
+      }
+
+      const prod = customerProductsMaster[custName][prodIdx];
+
+      currentCartItems.push({
+        details: prod.name,
+        quantity: qty
+      });
+
+      renderCartTable();
+
+      // Reset item select
+      document.getElementById('productSelect').value = '';
+      document.getElementById('quantity').value = '1';
+      document.getElementById('btnAddToCart').disabled = true;
+    }
+
+    function removeCartItem(idx) {
+      currentCartItems.splice(idx, 1);
+      renderCartTable();
+    }
+
+    function renderCartTable() {
+      const tbody = document.getElementById('cartTableBody');
+      const cartCountEl = document.getElementById('cartCount');
+      const cartTotalQtyEl = document.getElementById('cartTotalQty');
+      const btnSubmitOrder = document.getElementById('btnSubmitOrder');
+
+      tbody.innerHTML = '';
+      let totalQty = 0;
+
+      if (currentCartItems.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="py-4 text-center text-slate-400 text-xs sm:text-sm">ยังไม่มีรายการสินค้าในตะกร้า</td></tr>`;
+        cartCountEl.textContent = '0';
+        cartTotalQtyEl.textContent = '0';
+        btnSubmitOrder.disabled = true;
+        return;
+      }
+
+      currentCartItems.forEach((item, index) => {
+        totalQty += item.quantity;
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-slate-100 hover:bg-white text-xs sm:text-sm font-semibold text-slate-800';
+        tr.innerHTML = `
+          <td class="py-1.5 px-2 truncate max-w-[160px]" title="${escapeHtml(item.details)}">${escapeHtml(item.details)}</td>
+          <td class="py-1.5 px-2 text-right text-indigo-950 font-black">${item.quantity.toLocaleString()} ใบ</td>
+          <td class="py-1.5 px-1 text-center">
+            <button type="button" onclick="removeCartItem(${index})" class="text-rose-500 hover:text-rose-700 font-bold px-1.5 py-0.5 rounded hover:bg-rose-50 transition-colors">✕</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      cartCountEl.textContent = currentCartItems.length;
+      cartTotalQtyEl.textContent = totalQty.toLocaleString();
+      btnSubmitOrder.disabled = false;
+    }
+
+    function setInitialDateTime() {
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      document.getElementById('orderDate').value = now.toISOString().slice(0, 16);
+    }
+
+    function addOrder(e) {
+      e.preventDefault();
+      
+      const custName = document.getElementById('customerSelect').value;
+      
+      if (!custName) {
+        showAlert("กรุณาเลือกลูกค้าให้ถูกต้อง");
+        return;
+      }
+
+      if (currentCartItems.length === 0) {
+        showAlert("กรุณาเพิ่มอย่างน้อย 1 รายการสินค้าลงในออเดอร์");
+        return;
+      }
+
+      const newOrder = {
+        id: Date.now(),
+        date: document.getElementById('orderDate').value.replace('T', ' '),
+        customer: custName,
+        items: [...currentCartItems],
+        note: document.getElementById('note').value.trim(),
+        status: 'รอดำเนินการ'
+      };
+
+      orders.unshift(newOrder);
+      saveAndRender();
+      
+      // Reset Form State
+      currentCartItems = [];
+      renderCartTable();
+      document.getElementById('customerSelect').value = '';
+      onCustomerChange();
+      document.getElementById('note').value = '';
+      setInitialDateTime();
+    }
+
+    function markDelivered(id) {
+      const order = orders.find(o => o.id === id);
+      if (order) {
+        const inputNote = document.getElementById(`incNote_${id}`);
+        let noteVal = inputNote ? inputNote.value.trim() : (order.incompleteNote || '');
+        
+        const incPrompt = prompt('ระบุหมายเหตุการจัดส่ง (เช่น ส่งครบถ้วน หรือ ส่งขาด 50 ใบ/ชำรุด):', noteVal);
+        if (incPrompt !== null) {
+          order.incompleteNote = incPrompt.trim();
+        }
+        order.status = 'ส่งของแล้ว';
+        saveAndRender();
+      }
+    }
+
+    function updateIncompleteNote(id, val) {
+      const order = orders.find(o => o.id === id);
+      if (order) {
+        order.incompleteNote = val.trim();
+        localStorage.setItem('box_orders_data_v3', JSON.stringify(orders));
+      }
+    }
+
+    function toggleStatus(id) {
+      const order = orders.find(o => o.id === id);
+      if (order) {
+        if (order.status === 'ส่งของแล้ว' || order.status === 'จัดส่งแล้ว') order.status = 'รอดำเนินการ';
+        else if (order.status === 'รอดำเนินการ') order.status = 'ส่งของแล้ว';
+        else order.status = 'รอดำเนินการ';
+        saveAndRender();
+      }
+    }
+
+    function deleteOrder(id) {
+      if (confirm('คุณต้องการลบรายการออเดอร์นี้ใช่หรือไม่?')) {
+        orders = orders.filter(o => o.id !== id);
+        saveAndRender();
+      }
+    }
+
+    function saveAndRender() {
+      localStorage.setItem('box_orders_data_v3', JSON.stringify(orders));
+      renderOrders();
+    }
+
+    function renderOrders() {
+      const tbody = document.getElementById('orderTableBody');
+      const countEl = document.getElementById('orderCount');
+      const grandTotalQtyEl = document.getElementById('grandTotalQty');
+
+      tbody.innerHTML = '';
+      let totalQtyAllOrders = 0;
+
+      if (orders.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-10 text-slate-400">
+          <div class="flex flex-col items-center justify-center gap-1.5">
+            <span class="text-3xl">📥</span>
+            <span class="text-sm font-bold">ยังไม่มีข้อมูลออเดอร์ในระบบ</span>
+          </div>
+        </td></tr>`;
+        countEl.textContent = '0 รายการ';
+        grandTotalQtyEl.textContent = '0 ใบ';
+        return;
+      }
+
+      orders.forEach(order => {
+        let itemsList = [];
+        if (order.items && Array.isArray(order.items)) {
+          itemsList = order.items;
+        } else if (order.details) {
+          itemsList = [{
+            details: order.details,
+            quantity: order.quantity || 1
+          }];
+        }
+
+        const orderTotalQty = itemsList.reduce((sum, item) => sum + (item.quantity || 0), 0);
+        
+        if (order.status !== 'ยกเลิก') {
+          totalQtyAllOrders += orderTotalQty;
+        }
+
+        let statusBadge = '<span class="px-2.5 py-1 text-xs rounded-full font-bold bg-amber-50 text-amber-700 border border-amber-200 whitespace-nowrap">⏳ รอดำเนินการ</span>';
+        let rowStyle = 'hover:bg-slate-50';
+
+        if (order.status === 'จัดส่งแล้ว' || order.status === 'ส่งของแล้ว') {
+          statusBadge = '<span class="px-2.5 py-1 text-xs rounded-full font-extrabold bg-rose-600 text-white shadow-2xs whitespace-nowrap">🚩 ส่งเรียบร้อยแล้ว</span>';
+          rowStyle = 'bg-rose-50/80 border-l-4 border-l-rose-500 font-medium'; 
+        } else if (order.status === 'ยกเลิก') {
+          statusBadge = '<span class="px-2.5 py-1 text-xs rounded-full font-bold bg-slate-100 text-slate-500 border border-slate-200 line-through whitespace-nowrap">❌ ยกเลิก</span>';
+          rowStyle = 'bg-slate-100/60 text-slate-400';
+        }
+
+        let itemsHTML = '<div class="space-y-1 py-0.5">';
+        itemsList.forEach((it) => {
+          itemsHTML += `
+            <div class="flex items-center justify-between text-xs sm:text-sm bg-white/90 px-2.5 py-1 rounded-md border border-slate-200/80 gap-2 shadow-2xs">
+              <span class="font-bold text-slate-800 truncate max-w-[220px]" title="${escapeHtml(it.details)}">• ${escapeHtml(it.details)}</span>
+              <span class="font-black text-indigo-950 shrink-0 bg-indigo-50 px-2 py-0.5 rounded text-xs sm:text-sm">${(it.quantity || 0).toLocaleString()} ใบ</span>
+            </div>
+          `;
+        });
+        itemsHTML += '</div>';
+
+        const tr = document.createElement('tr');
+        tr.className = `${rowStyle} transition-all duration-150`;
+        const noteText = order.note ? escapeHtml(order.note) : '';
+        const incompleteNote = order.incompleteNote ? escapeHtml(order.incompleteNote) : '';
+
+        tr.innerHTML = `
+          <td class="py-2.5 px-3 text-xs sm:text-sm font-bold text-slate-600 whitespace-nowrap align-top">${order.date}</td>
+          <td class="py-2.5 px-3 text-xs sm:text-sm font-black text-slate-900 whitespace-nowrap align-top">${escapeHtml(order.customer)}</td>
+          <td class="py-1.5 px-3 text-xs sm:text-sm text-slate-800 align-top">${itemsHTML}</td>
+          <td class="py-2.5 px-3 text-xs sm:text-sm font-black text-right text-indigo-950 whitespace-nowrap align-top">${orderTotalQty.toLocaleString()} ใบ</td>
+          <td class="py-2.5 px-3 text-center whitespace-nowrap align-top">${statusBadge}</td>
+          <td class="py-2.5 px-3 text-xs sm:text-sm text-slate-800 min-w-[170px] align-top">
+            ${noteText ? `<div class="text-xs text-slate-700 mb-1 font-semibold">📝 ${noteText}</div>` : ''}
+            <div class="flex items-center gap-1">
+              <input type="text" id="incNote_${order.id}" value="${incompleteNote}" placeholder="ระบุหากส่งไม่ครบ" onblur="updateIncompleteNote(${order.id}, this.value)" class="w-full text-xs px-2 py-1 bg-white border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-rose-400 text-rose-900 font-bold shadow-2xs">
+            </div>
+          </td>
+          <td class="py-2.5 px-3 text-center whitespace-nowrap align-top">
+            <div class="flex items-center justify-center gap-1">
+              ${order.status !== 'ส่งของแล้ว' && order.status !== 'จัดส่งแล้ว' ? `
+                <button onclick="markDelivered(${order.id})" class="px-2.5 py-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs rounded-lg shadow-2xs transition-all active:scale-95 flex items-center gap-1">
+                  🚚 ส่งของแล้ว
+                </button>
+              ` : `
+                <button onclick="toggleStatus(${order.id})" class="px-2.5 py-1 bg-rose-200 hover:bg-rose-300 text-rose-900 font-bold text-xs rounded-lg transition-all active:scale-95 flex items-center gap-1">
+                  ↩️ รอดำเนินการ
+                </button>
+              `}
+              <button onclick="deleteOrder(${order.id})" class="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      countEl.textContent = `${orders.length} รายการ`;
+      grandTotalQtyEl.textContent = `${totalQtyAllOrders.toLocaleString()} ใบ`;
+    }
+
+    function exportJSON() {
+      if (orders.length === 0) {
+        showAlert('ไม่มีข้อมูลออเดอร์สำหรับส่งออก');
+        return;
+      }
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(orders, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `box_orders_backup_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const importedOrders = JSON.parse(e.target.result);
+          if (Array.isArray(importedOrders)) {
+            if (confirm(`พบข้อมูลออเดอร์จำนวน ${importedOrders.length} รายการ ต้องการนำเข้าและรวมกับข้อมูลเดิมใช่หรือไม่?`)) {
+              const combinedMap = new Map();
+              [...orders, ...importedOrders].forEach(item => combinedMap.set(item.id, item));
+              orders = Array.from(combinedMap.values()).sort((a,b) => b.id - a.id);
+              saveAndRender();
+              showAlert('นำเข้าข้อมูลเรียบร้อยแล้ว!');
+            }
+          } else {
+            showAlert('รูปแบบไฟล์ไม่ถูกต้อง');
+          }
+        } catch (err) {
+          showAlert('เกิดข้อผิดพลาดในการอ่านไฟล์ JSON');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function exportCSV() {
+      if (orders.length === 0) {
+        showAlert('ไม่มีข้อมูลสำหรับส่งออก');
+        return;
+      }
+      let csvContent = "\uFEFFวัน-เวลา,ชื่อลูกค้า,รายการสินค้า/กล่อง (จำนวน),จำนวนรวมทั้งหมด (ใบ),หมายเหตุออเดอร์,หมายเหตุส่งไม่ครบ,สถานะ\n";
+      orders.forEach(o => {
+        const customer = `"${o.customer.replace(/"/g, '""')}"`;
+        const note = `"${(o.note || '').replace(/"/g, '""')}"`;
+        const incNote = `"${(o.incompleteNote || '').replace(/"/g, '""')}"`;
+        
+        let itemsList = o.items || [];
+        if (!itemsList.length && o.details) {
+          itemsList = [{ details: o.details, quantity: o.quantity }];
+        }
+
+        const detailsSummary = itemsList.map(i => `${i.details} (${i.quantity}ใบ)`).join(' | ');
+        const detailsEscaped = `"${detailsSummary.replace(/"/g, '""')}"`;
+
+        const totalQty = itemsList.reduce((sum, i) => sum + (i.quantity || 0), 0);
+
+        csvContent += `${o.date},${customer},${detailsEscaped},${totalQty},${note},${incNote},${o.status}\n`;
+      });
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `box_orders_report_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    initCustomerDropdown();
+    setInitialDateTime();
+    renderOrders();
+  </script>
+</body>
+</html>
